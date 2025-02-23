@@ -1,0 +1,20 @@
+server:
+  port: 8081
+spring:
+  main:
+    allow-bean-definition-overriding: true
+
+    allow-circular-references: true
+password: ssia123
+privateKey: C:\Users\zl\IdeaProjects\auth-center\src\main\resources\ssia.jks
+alias: ssia
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+        oauth2: TRACE
+
+
+
