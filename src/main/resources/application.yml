@@ -1,12 +1,41 @@
 server:
   port: 8081
 spring:
+  datasource:
+    #    driver-class-name: com.mysql.cj.jdbc.Driver
+    #    url: jdbc:mysql://172.20.21.8:3306/auth-center?useUnicode=true&characterEncoding=utf-8&useSSL=false&nullCatalogMeansCurrent=true&serverTimezone=Asia/Shanghai
+    #    username: root
+    #    password: xE9EuL52VfWF
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://localhost:3306/sky_take_out?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: root
+      password: 123456
+#    #ctbx
+#        url: jdbc:dm://192.168.5.241:5236/AUTH-DELETE
+#        username: AUTH-DELETE
+#        password: authcenter
+#        driver-class-name: dm.jdbc.driver.DmDriver
+
+    #软件部
+#    url: jdbc:dm://192.168.1.252:5236/AUTHCENTER1
+#    username: SYSDBA
+#    password: SYSDBA001
+#    driver-class-name: dm.jdbc.driver.DmDriver
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    #    password: ZXCqwe123.
+    database: 1
+    redisson:
+      threads: 16
+      nettyThreads: 32
+      transportMode: "NIO"
+
   main:
     allow-bean-definition-overriding: true
-
     allow-circular-references: true
 password: ssia123
-privateKey: C:\Users\zl\IdeaProjects\auth-center\src\main\resources\ssia.jks
+privateKey: ssia.jks
 alias: ssia
 
 logging:
@@ -15,6 +44,8 @@ logging:
       springframework:
         security: DEBUG
         oauth2: TRACE
+#    root: TRACE
+#    com.example: TRACE
 
 
 
