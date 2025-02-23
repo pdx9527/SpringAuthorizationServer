@@ -6,15 +6,15 @@ spring:
     #    url: jdbc:mysql://172.20.21.8:3306/auth-center?useUnicode=true&characterEncoding=utf-8&useSSL=false&nullCatalogMeansCurrent=true&serverTimezone=Asia/Shanghai
     #    username: root
     #    password: xE9EuL52VfWF
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://localhost:3306/sky_take_out?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
-      username: root
-      password: 123456
+#      driver-class-name: com.mysql.cj.jdbc.Driver
+#      url: jdbc:mysql://localhost:3306/sky_take_out?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+#      username: root
+#      password: 123456
 #    #ctbx
-#        url: jdbc:dm://192.168.5.241:5236/AUTH-DELETE
-#        username: AUTH-DELETE
-#        password: authcenter
-#        driver-class-name: dm.jdbc.driver.DmDriver
+        url: jdbc:dm://192.168.5.241:5236/AUTH-DELETE
+        username: AUTH-DELETE
+        password: authcenter
+        driver-class-name: dm.jdbc.driver.DmDriver
 
     #软件部
 #    url: jdbc:dm://192.168.1.252:5236/AUTHCENTER1
@@ -44,6 +44,7 @@ logging:
       springframework:
         security: DEBUG
         oauth2: TRACE
+        web: DEBUG
 #    root: TRACE
 #    com.example: TRACE
 

@@ -26,7 +26,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String loginNo) throws UsernameNotFoundException {
+        System.out.println("==调用了=============================================================================");
         SysUserAccount user = userService.queryUserByUserLoginNo(loginNo);
+        System.out.println("==============================================================================");
+        System.out.println(user.toString());
+        System.out.println("==============================================================================");
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在");
         }
@@ -34,7 +38,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // 获取用户权限
         List<String> userSubApplication = userService.getUserSubApplication(user.getId());
         System.out.println("User Sub Application: " + userSubApplication);
-
+        System.out.println("==============================================================================");
+        System.out.println(userSubApplication.toString());
+        System.out.println("==============================================================================");
         // 如果权限列表为空，添加默认权限
         if (userSubApplication == null || userSubApplication.isEmpty()) {
             userSubApplication = new ArrayList<>();

@@ -149,21 +149,21 @@ public class OauthConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        UserDetails userDetails = User.builder()
-                .username("admin")
-                .password(passwordEncoder.encode("123456"))
-//                .passwordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder()::encode)
-                .roles("USER")
-                .build();
-
-        return new InMemoryUserDetailsManager(userDetails);
-//        JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
-//        // 自定义表结构查询（可选）
-//        jdbcUserDetailsManager.setUsersByUsernameQuery(
-//                "SELECT username, password, enabled FROM sys_user_account WHERE username = ?"
-//        );
+//        UserDetails userDetails = User.builder()
+//                .username("admin")
+//                .password(passwordEncoder.encode("123456"))
+////                .passwordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder()::encode)
+//                .roles("USER")
+//                .build();
 //
-//        return userDetailsService;
+//        return new InMemoryUserDetailsManager(userDetails);
+////        JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
+////        // 自定义表结构查询（可选）
+////        jdbcUserDetailsManager.setUsersByUsernameQuery(
+////                "SELECT username, password, enabled FROM sys_user_account WHERE username = ?"
+////        );
+//
+        return userDetailsService;
     }
 
 //    @Bean
@@ -171,7 +171,7 @@ public class OauthConfig {
 ////        return new JdbcRegisteredClientRepository(jdbcTemplate);
 //        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
 //                .clientId("client_1")
-//                .clientSecret("{noop}123456")
+//                .clientSecret("$2a$10$dUZ/XA3p8uY8osICnNy1GuRWA.zHm0QNrbFA1YBMpSxXF95KhX0zC")
 //                // 修正认证方法（密码模式建议使用CLIENT_SECRET_BASIC）
 //                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
 //                // 添加完整的授权类型配置
@@ -200,13 +200,17 @@ public class OauthConfig {
     @Bean
     public OAuth2AuthorizationConsentService authorizationConsentService(JdbcTemplate jdbcTemplate, RegisteredClientRepository registeredClientRepository) {
         return new JdbcOAuth2AuthorizationConsentService(jdbcTemplate, registeredClientRepository);}
-    // 启用密码模式支持
+
+
+//     启用密码模式支持
+
+
     // 暴露 AuthenticationManager
-    @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
+//    @Bean
+//    public AuthenticationManager authenticationManager(
+//            AuthenticationConfiguration authConfig) throws Exception {
+//        return authConfig.getAuthenticationManager();
+//    }
     @Bean
     public JWKSource<SecurityContext> jwkSource() throws IOException, KeyStoreException, JOSEException, CertificateException, NoSuchAlgorithmException {
 
