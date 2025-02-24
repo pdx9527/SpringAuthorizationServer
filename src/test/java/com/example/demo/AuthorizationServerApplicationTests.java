@@ -12,11 +12,15 @@ import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 
+import java.time.Duration;
 import java.util.UUID;
 
+
+
 @SpringBootTest
-class DemoApplicationTests {
+class AuthorizationServerApplicationTests {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
@@ -31,9 +35,10 @@ class DemoApplicationTests {
     }
     @Test
     void testBCryptPasswordEncoder() {
-                RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("client_1")
-                .clientSecret("$2a$10$dUZ/XA3p8uY8osICnNy1GuRWA.zHm0QNrbFA1YBMpSxXF95KhX0zC")
+
+        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId("client_2")
+                .clientSecret(passwordEncoder.encode("12345"))
                 // 修正认证方法（密码模式建议使用CLIENT_SECRET_BASIC）
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 // 添加完整的授权类型配置
@@ -46,6 +51,11 @@ class DemoApplicationTests {
                 .scope(OidcScopes.OPENID)
                 .scope("all")
                 .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+                        .tokenSettings(TokenSettings.builder()
+
+                                .accessTokenTimeToLive(Duration.ofMinutes(30))
+                                .refreshTokenTimeToLive(Duration.ofHours(24))
+                                .build())
                 .build();
         registeredClientRepository.save(registeredClient);
     }
