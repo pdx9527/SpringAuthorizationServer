@@ -11,16 +11,16 @@ spring:
 #      username: root
 #      password: 123456
 #    #ctbx
-        url: jdbc:dm://192.168.5.241:5236/AUTH-DELETE
-        username: AUTH-DELETE
-        password: authcenter
-        driver-class-name: dm.jdbc.driver.DmDriver
+#        url: jdbc:dm://192.168.5.241:5236/AUTH-DELETE
+#        username: AUTH-DELETE
+#        password: authcenter
+#        driver-class-name: dm.jdbc.driver.DmDriver
 
     #软件部
-#    url: jdbc:dm://192.168.1.252:5236/AUTHCENTER1
-#    username: SYSDBA
-#    password: SYSDBA001
-#    driver-class-name: dm.jdbc.driver.DmDriver
+    url: jdbc:dm://192.168.1.252:5236/AUTHCENTER1
+    username: SYSDBA
+    password: SYSDBA001
+    driver-class-name: dm.jdbc.driver.DmDriver
   redis:
     host: 127.0.0.1
     port: 6379
@@ -40,11 +40,15 @@ alias: ssia
 
 logging:
   level:
+    dm:
+      jdbc:
+        driver: DEBUG
     org:
       springframework:
-        security: DEBUG
-        oauth2: TRACE
-        web: DEBUG
+        jdbc:
+          core:
+            JdbcTemplate: DEBUG
+            StatementCreatorUtils: trace
 #    root: TRACE
 #    com.example: TRACE
 

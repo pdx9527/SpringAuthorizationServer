@@ -1,11 +1,15 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
 @Data
+@JsonSerialize
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AuthUser extends User {
 
     private Long id;
