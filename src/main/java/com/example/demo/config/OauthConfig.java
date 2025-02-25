@@ -252,14 +252,14 @@ public class OauthConfig {
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder()
                 .issuer("https://example.com")
-                .authorizationEndpoint("/v1/oauth2/v1/authorize")
+                .authorizationEndpoint("/v1/oauth/authorize")
                 .tokenEndpoint("/v1/oauth/token")
 //                .tokenIntrospectionEndpoint("/v1/oauth2/v1/introspect")
                 .tokenIntrospectionEndpoint("/v1/oauth/check_token")
-                .tokenRevocationEndpoint("/v1/oauth2/v1/revoke")
-                .jwkSetEndpoint("/v1/oauth2/v1/jwks")
-                .oidcUserInfoEndpoint("/v1/connect/v1/userinfo")
-                .oidcClientRegistrationEndpoint("/v1/connect/v1/register")
+                .tokenRevocationEndpoint("/v1/oauth/revoke")
+                .jwkSetEndpoint("/v1/oauth/jwks")
+                .oidcUserInfoEndpoint("/v1/connect/userinfo")
+                .oidcClientRegistrationEndpoint("/v1/connect/register")
                 .build();
     }
 
