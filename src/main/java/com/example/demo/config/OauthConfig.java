@@ -34,7 +34,7 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.*;
 
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
@@ -49,7 +49,7 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
-import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.*;
 import org.springframework.security.oauth2.server.authorization.web.authentication.DelegatingAuthenticationConverter;
 import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2AuthorizationCodeAuthenticationConverter;
 import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2ClientCredentialsAuthenticationConverter;
@@ -87,6 +87,14 @@ public class OauthConfig {
     @Autowired
     @Qualifier("dataSource")
     private DataSource dataSource;
+    @Autowired
+    public AuthenticationManager authenticationManager;
+    @Autowired
+    public OAuth2AuthorizationService authorizationService;
+    @Autowired
+    public JwtEncoder jwtEncoder;
+    @Autowired
+    public OAuth2TokenGenerator oAuth2TokenGenerator;
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -104,118 +112,94 @@ public class OauthConfig {
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
-
-        http.apply(authorizationServerConfigurer.tokenEndpoint((tokenEndpoint) -> tokenEndpoint.accessTokenRequestConverter(
-                new DelegatingAuthenticationConverter(Arrays.asList(
-                        new OAuth2AuthorizationCodeAuthenticationConverter(),
+        http.apply(
+//                支持多种 OAuth2 授权模式
+                authorizationServerConfigurer.
+                        tokenEndpoint(
+                                (tokenEndpoint) ->
+                        tokenEndpoint.accessTokenRequestConverter(
+                        new DelegatingAuthenticationConverter(Arrays.asList(
+//                        new OAuth2AuthorizationCodeAuthenticationConverter(),
                         new OAuth2RefreshTokenAuthenticationConverter(),
                         new OAuth2ClientCredentialsAuthenticationConverter(),
                         new OAuth2ResourceOwnerPasswordAuthenticationConverter()))
-        )));
+                                                                    )
+                ))
+
+
+        ;
+//        通过 endpointsMatcher 匹配所有 OAuth2 协议端点（如 /oauth2/token）。
         RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
         http
                 .requestMatcher(endpointsMatcher)
                 .authorizeRequests(authorizeRequests -> authorizeRequests.anyRequest().authenticated())
                 .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
-                .apply(authorizationServerConfigurer);
+                .apply(authorizationServerConfigurer)
+        ;
 
         SecurityFilterChain securityFilterChain = http.formLogin(Customizer.withDefaults()).build();
-
         /**
          * Custom configuration for Resource Owner Password grant type. Current implementation has no support for Resource Owner
          * Password grant type
          */
         addCustomOAuth2ResourceOwnerPasswordAuthenticationProvider(http);
-
         return securityFilterChain;
     }
-
+//    扩展资源所有者密码模式（Resource Owner Password）
     @SuppressWarnings("unchecked")
     private void addCustomOAuth2ResourceOwnerPasswordAuthenticationProvider(HttpSecurity http) {
-
-        AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
-        OAuth2AuthorizationService authorizationService = http.getSharedObject(OAuth2AuthorizationService.class);
-        OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator = http.getSharedObject(OAuth2TokenGenerator.class);
-
+//        AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+//        OAuth2AuthorizationService authorizationService = http.getSharedObject(OAuth2AuthorizationService.class);
+//        OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator = http.getSharedObject(OAuth2TokenGenerator.class);
         OAuth2ResourceOwnerPasswordAuthenticationProvider resourceOwnerPasswordAuthenticationProvider =
-                new OAuth2ResourceOwnerPasswordAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator);
-        // This will add new authentication provider in the list of existing authentication providers.
+                new OAuth2ResourceOwnerPasswordAuthenticationProvider(authenticationManager, authorizationService, oAuth2TokenGenerator);
+//        代码中通过 http.authenticationProvider() 将其注入到 Spring Security 的认证链中
         http.authenticationProvider(resourceOwnerPasswordAuthenticationProvider);
     }
-
-
-
     @Bean
     public UserDetailsService userDetailsService() {
-//        UserDetails userDetails = User.builder()
-//                .username("admin")
-//                .password(passwordEncoder.encode("123456"))
-////                .passwordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder()::encode)
-//                .roles("USER")
-//                .build();
-//
-//        return new InMemoryUserDetailsManager(userDetails);
-////        JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
-////        // 自定义表结构查询（可选）
-////        jdbcUserDetailsManager.setUsersByUsernameQuery(
-////                "SELECT username, password, enabled FROM sys_user_account WHERE username = ?"
-////        );
-//
         return userDetailsService;
     }
-
-//    @Bean
-//    public RegisteredClientRepository registeredClientRepository() {
-////        return new JdbcRegisteredClientRepository(jdbcTemplate);
-//        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
-//                .clientId("client_1")
-//                .clientSecret("$2a$10$dUZ/XA3p8uY8osICnNy1GuRWA.zHm0QNrbFA1YBMpSxXF95KhX0zC")
-//                // 修正认证方法（密码模式建议使用CLIENT_SECRET_BASIC）
-//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-//                // 添加完整的授权类型配置
-//                .authorizationGrantType(AuthorizationGrantType.PASSWORD)
-//                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-//                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-//                // 必须配置授权码模式（OpenID Connect要求）
-////                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-//                // 补充必要的scope配置
-//                .scope(OidcScopes.OPENID)
-//                .scope("all")
-//                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
-//                .build();
-////        return new JdbcRegisteredClientRepository()
-//        return new InMemoryRegisteredClientRepository(registeredClient);
-//    }
         @Bean
     public RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
             return new JdbcRegisteredClientRepository(jdbcTemplate);
     }
+
     @Bean
     public OAuth2AuthorizationService authorizationService(JdbcTemplate jdbcTemplate, RegisteredClientRepository registeredClientRepository) {
-
-
         return new JdbcOAuth2AuthorizationService(jdbcTemplate, registeredClientRepository);
     }
 
     @Bean
     public OAuth2AuthorizationConsentService authorizationConsentService(JdbcTemplate jdbcTemplate, RegisteredClientRepository registeredClientRepository) {
         return new JdbcOAuth2AuthorizationConsentService(jdbcTemplate, registeredClientRepository);}
-
-
-//     启用密码模式支持
-
-
-    // 暴露 AuthenticationManager
-//    @Bean
-//    public AuthenticationManager authenticationManager(
-//            AuthenticationConfiguration authConfig) throws Exception {
-//        return authConfig.getAuthenticationManager();
-//    }
     @Bean
     public JWKSource<SecurityContext> jwkSource() throws IOException, KeyStoreException, JOSEException, CertificateException, NoSuchAlgorithmException {
+// 1. 加载 JKS 密钥库文件
+        ClassPathResource resource = new ClassPathResource(privateKey);
+        KeyStore jks = KeyStore.getInstance("jks");
+        char[] pin = password.toCharArray();
+        jks.load(resource.getInputStream(), pin);
 
+        // 2. 从密钥库中提取 RSA 密钥
+        RSAKey rsaKey = RSAKey.load(jks, alias, pin);
+
+        // 3. 构建 JWKSet 并返回
+        JWKSet jwkSet = new JWKSet(rsaKey);
+        return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
+    }
+
+    @Bean
+    public OAuth2TokenGenerator<?> tokenGenerator() {
+        JwtGenerator jwtGenerator = new JwtGenerator(jwtEncoder);
+        OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
+        OAuth2RefreshTokenGenerator refreshTokenGenerator = new OAuth2RefreshTokenGenerator();
+        return new DelegatingOAuth2TokenGenerator(
+                jwtGenerator, accessTokenGenerator, refreshTokenGenerator);
+    }
+    @Bean
+    public JwtEncoder jwtEncoder() throws IOException, KeyStoreException, JOSEException, CertificateException, NoSuchAlgorithmException{
         ClassPathResource resource = new ClassPathResource(privateKey);
         KeyStore jks = KeyStore.getInstance("jks");
 //    KeyStore pkcs12 = KeyStore.getInstance("pkcs12");
@@ -223,30 +207,14 @@ public class OauthConfig {
         jks.load(resource.getInputStream(), pin);
         RSAKey rsaKey = RSAKey.load(jks, alias, pin);
 
-        JWKSet jwkSet = new JWKSet(rsaKey);
-        return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
-    }
-
-
-
-    private static KeyPair generateRsaKey() {
-        KeyPair keyPair;
-        try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048);
-            keyPair = keyPairGenerator.generateKeyPair();
-        }
-        catch (Exception ex) {
-            throw new IllegalStateException(ex);
-        }
-        return keyPair;
+        JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(new JWKSet(rsaKey));
+        return new NimbusJwtEncoder(jwkSource);
     }
 
     @Bean
     public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
         return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
     }
-
 
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
