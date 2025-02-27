@@ -48,8 +48,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, SysUserAccount> imp
         return baseMapper.getUserSubApplication(userId);
     }
 
-
-
+    @Override
+    public SysUserAccount queryUserByUserName(String name) {
+        return baseMapper.queryUserByUserName(name);
+    }
 
 
 }

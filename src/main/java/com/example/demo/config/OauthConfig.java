@@ -1,5 +1,7 @@
 package com.example.demo.config;
 
+import com.example.demo.entity.SysUserAccount;
+import com.example.demo.service.IUserService;
 import com.example.demo.service.impl.UserDetailsServiceImpl;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -36,10 +38,7 @@ import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.jwt.*;
 
-import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationConsentService;
-import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
-import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.*;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -58,6 +57,8 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.sql.DataSource;
@@ -113,6 +114,18 @@ public class OauthConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
+
+
+        // 关键：启用 OIDC 支持
+        authorizationServerConfigurer.oidc(Customizer.withDefaults());
+        // 合并所有端点到单个匹配器
+        RequestMatcher endpointsMatcher = new OrRequestMatcher(
+                authorizationServerConfigurer.getEndpointsMatcher(),
+                new AntPathRequestMatcher("/v1/connect/userinfo")
+        );
+
+
+
         http.apply(
 //                支持多种 OAuth2 授权模式
                 authorizationServerConfigurer.
@@ -126,14 +139,17 @@ public class OauthConfig {
                         new OAuth2ResourceOwnerPasswordAuthenticationConverter()))
                                                                     )
                 ))
-
-
         ;
+
+
+
+
 //        通过 endpointsMatcher 匹配所有 OAuth2 协议端点（如 /oauth2/token）。
-        RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
+//        RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
         http
                 .requestMatcher(endpointsMatcher)
-                .authorizeRequests(authorizeRequests -> authorizeRequests.anyRequest().authenticated())
+                .authorizeRequests(authorizeRequests -> authorizeRequests.anyRequest().permitAll())
+                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
                 .apply(authorizationServerConfigurer)
         ;
@@ -213,13 +229,30 @@ public class OauthConfig {
 
     @Bean
     public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
+
         return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
     }
 
+//
+//    @Bean
+//    public OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer(IUserService userService) {
+//        return context -> {
+//            if (context.getTokenType().equals(OAuth2TokenType.ACCESS_TOKEN)) {
+//                // 从数据库加载用户信息
+//                SysUserAccount sysUserAccount = userService.queryUserByUserName(context.getPrincipal().getName());
+//                // 添加自定义声明
+//                context.getClaims()
+//                        .subject(sysUserAccount.getId().toString())
+//                        .claim("id", sysUserAccount.getId().toString())
+//                        .claim("name", sysUserAccount.getName());
+//
+//            }
+//        };
+//    }
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder()
-                .issuer("https://example.com")
+                .issuer("http://localhost:8088")
                 .authorizationEndpoint("/v1/oauth/authorize")
                 .tokenEndpoint("/v1/oauth/token")
 //                .tokenIntrospectionEndpoint("/v1/oauth2/v1/introspect")

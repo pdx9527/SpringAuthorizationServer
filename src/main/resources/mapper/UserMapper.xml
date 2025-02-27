@@ -22,7 +22,14 @@
             u.login_no = #{loginNo}
     </select>
 
-
+<select id="queryUserByUserName" parameterType="String" resultType="com.example.demo.entity.SysUserAccount">
+    SELECT
+        *
+    FROM
+        sys_user_account u
+    WHERE
+        u.name = #{name}
+</select>
 
     <!-- 查询用户的子系统列表 -->
     <select id="getUserSubApplication" parameterType="Long"  resultType="String">
