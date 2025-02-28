@@ -20,5 +20,5 @@ public interface UserMapper extends BaseMapper<SysUserAccount> {
 //    List<Permission> queryUserAuthorities(Long userId);
     SysUserAccount queryUserByUserLoginNo(String loginNo);
     List<String> getUserSubApplication(Long userId);
-    SysUserAccount queryUserByUserName(String name);
+    SysUserAccount queryUserByUserId(String userId);
 }

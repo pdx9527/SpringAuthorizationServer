@@ -19,16 +19,16 @@
         FROM
             sys_user_account u
         WHERE
-            u.login_no = #{loginNo}
+            u.login_no = #{loginNo} and u.is_del!=1
     </select>
 
-<select id="queryUserByUserName" parameterType="String" resultType="com.example.demo.entity.SysUserAccount">
+<select id="queryUserByUserId" parameterType="String" resultType="com.example.demo.entity.SysUserAccount">
     SELECT
         *
     FROM
         sys_user_account u
     WHERE
-        u.name = #{name}
+        u.user_id = #{userId} and u.is_del!=1
 </select>
 
     <!-- 查询用户的子系统列表 -->

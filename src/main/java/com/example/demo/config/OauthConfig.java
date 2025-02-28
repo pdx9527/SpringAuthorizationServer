@@ -1,6 +1,8 @@
 package com.example.demo.config;
 
+import com.example.demo.entity.AuthUser;
 import com.example.demo.entity.SysUserAccount;
+import com.example.demo.mapper.CustomOidcUserInfoMapper;
 import com.example.demo.service.IUserService;
 import com.example.demo.service.impl.UserDetailsServiceImpl;
 import com.nimbusds.jose.JOSEException;
@@ -96,6 +98,8 @@ public class OauthConfig {
     public JwtEncoder jwtEncoder;
     @Autowired
     public OAuth2TokenGenerator oAuth2TokenGenerator;
+    @Autowired
+    IUserService userService;
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -116,8 +120,15 @@ public class OauthConfig {
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
 
 
+
         // 关键：启用 OIDC 支持
         authorizationServerConfigurer.oidc(Customizer.withDefaults());
+        // 绑定自定义用户信息映射器
+        authorizationServerConfigurer.oidc(oidc -> oidc
+                .userInfoEndpoint(userInfo -> userInfo
+                        .userInfoMapper(new CustomOidcUserInfoMapper(userService))
+                )
+        );
         // 合并所有端点到单个匹配器
         RequestMatcher endpointsMatcher = new OrRequestMatcher(
                 authorizationServerConfigurer.getEndpointsMatcher(),
@@ -209,6 +220,7 @@ public class OauthConfig {
     @Bean
     public OAuth2TokenGenerator<?> tokenGenerator() {
         JwtGenerator jwtGenerator = new JwtGenerator(jwtEncoder);
+        jwtGenerator.setJwtCustomizer(jwtCustomizer(userService)); // 注入定制器
         OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
         OAuth2RefreshTokenGenerator refreshTokenGenerator = new OAuth2RefreshTokenGenerator();
         return new DelegatingOAuth2TokenGenerator(
@@ -233,22 +245,24 @@ public class OauthConfig {
         return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
     }
 
-//
-//    @Bean
-//    public OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer(IUserService userService) {
-//        return context -> {
-//            if (context.getTokenType().equals(OAuth2TokenType.ACCESS_TOKEN)) {
-//                // 从数据库加载用户信息
-//                SysUserAccount sysUserAccount = userService.queryUserByUserName(context.getPrincipal().getName());
-//                // 添加自定义声明
-//                context.getClaims()
-//                        .subject(sysUserAccount.getId().toString())
-//                        .claim("id", sysUserAccount.getId().toString())
-//                        .claim("name", sysUserAccount.getName());
-//
-//            }
-//        };
-//    }
+
+    @Bean
+    public OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer(IUserService userService) {
+        return context -> {
+            if (context.getTokenType().equals(OAuth2TokenType.ACCESS_TOKEN)) {
+                AuthUser principal = (AuthUser)context.getPrincipal().getPrincipal();
+                // 从数据库加载用户信息context.getPrincipal().getPrincipal().toString()
+                SysUserAccount sysUserAccount = userService.queryUserByUserId(principal.getId().toString());
+
+                // 添加自定义声明
+                context.getClaims()
+                        .subject(sysUserAccount.getId().toString())
+                        .claim("UserId", sysUserAccount.getUserId().toString())
+                        .claim("name", sysUserAccount.getName());
+
+            }
+        };
+    }
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder()

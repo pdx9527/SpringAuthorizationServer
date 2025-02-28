@@ -21,6 +21,6 @@ public interface IUserService extends IService<SysUserAccount> {
 
     SysUserAccount queryUserByUserLoginNo(String loginNo);
     List<String> getUserSubApplication(Long userId);
-    SysUserAccount queryUserByUserName(String name);
+    SysUserAccount queryUserByUserId(String userId);
 
 }
