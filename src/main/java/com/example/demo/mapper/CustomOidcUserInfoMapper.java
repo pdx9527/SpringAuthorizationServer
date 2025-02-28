@@ -31,7 +31,7 @@ public class CustomOidcUserInfoMapper implements Function<OidcUserInfoAuthentica
         Jwt token = principal.getToken();
         // 查询用户信息
         SysUserAccount user = userService.queryUserByUserId(token.getClaimAsString("UserId"));
-
+//将用户信息注入到token，方便("/v1/connect/userinfo")请求
         return OidcUserInfo.builder()
                 .subject(user.getUserId().toString())
                 .name(user.getName())

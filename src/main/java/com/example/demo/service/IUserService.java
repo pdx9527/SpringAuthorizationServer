@@ -4,6 +4,7 @@ package com.example.demo.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.demo.entity.SysUserAccount;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
@@ -22,5 +23,5 @@ public interface IUserService extends IService<SysUserAccount> {
     SysUserAccount queryUserByUserLoginNo(String loginNo);
     List<String> getUserSubApplication(Long userId);
     SysUserAccount queryUserByUserId(String userId);
-
+    SysUserAccount queryUserByUserName(String userName);
 }

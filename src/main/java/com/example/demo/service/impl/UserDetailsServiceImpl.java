@@ -58,7 +58,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 //        }
         return new AuthUser(
                 user.getUserId(),
-                user.getName(),
+                user.getLoginNo(),
                 user.getPwd(),
                 true,
                 true,
