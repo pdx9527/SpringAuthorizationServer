@@ -14,5 +14,5 @@
     
 </dependency>``
 由于此版本的官方文档比较难找，我将连接放在此处https://docs.spring.io/spring-authorization-server/docs/0.4.0/reference/html/getting-started.html
-项目中的用户数据库自行参考java实体构建把，另外还需要默认的数据库表来自于``Spring Authorization Server``在其源码中可以找到sql脚本
+项目中的用户数据库自行参考java实体构建把，另外还需要默认的数据库表来自于``Spring Authorization Server``在其源码中可以找到sql脚本(在项目中我已上传到资源目录)
 最终完成了Spring Authorization Server的授权中心开发，在完结此项目中查阅了很多其他小伙伴的项目和博客感谢他们。
